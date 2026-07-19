@@ -1,4 +1,4 @@
-## Twitch-ntfy v1.0
+## Twitch-ntfy v0.1
 
 Получай сообщения из чата Twitch прямо в приложение [ntfy](https://ntfy.sh) в реальном времени.
 
