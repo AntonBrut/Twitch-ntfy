@@ -26,7 +26,7 @@ RECONNECT_DELAY = 5
 
 def send_ntfy(message: str) -> None:
     url = f"{NTFY_SERVER}/{NTFY_TOPIC}"
-    headers = {"Title": f"Twitch: #{TWITCH_CHANNEL}"}
+    headers = {}
     if NTFY_TOKEN:
         headers["Authorization"] = f"Bearer {NTFY_TOKEN}"
     try:
