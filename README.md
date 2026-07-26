@@ -16,7 +16,7 @@
 1. Установи Python 3.10+
 2. Склонируй репозиторий
 3. `pip install -r requirements.txt`
-4. Скопируй `env.example` в `env` и заполни настройки
+4. Заполни настройки в `env`
 5. Запусти `python twitch_ntfy.py` или `run.bat`
 
 **Через exe:**
