@@ -18,7 +18,6 @@ NTFY_TOPIC = os.getenv("NTFY_TOPIC", "")
 NTFY_SERVER = os.getenv("NTFY_SERVER", "https://ntfy.sh")
 NTFY_TOKEN = os.getenv("NTFY_TOKEN", "")
 NTFY_PROXY = os.getenv("NTFY_PROXY", "")
-NTFY_NO_PROXY = os.getenv("NTFY_NO_PROXY", "false").lower() in ("true", "1", "yes")
 SHOW_BADGES = os.getenv("SHOW_BADGES", "false").lower() in ("true", "1", "yes")
 
 TWITCH_HOST = "irc.chat.twitch.tv"
@@ -51,14 +50,12 @@ def send_ntfy(message: str) -> None:
         headers["Authorization"] = f"Bearer {NTFY_TOKEN}"
     try:
         proxies = None
-        if NTFY_NO_PROXY:
-            proxies = {"http": None, "https": None}
-        elif NTFY_PROXY:
-            proxies = {"http": NTFY_PROXY, "https": NTFY_PROXY}
-        else:
+        if NTFY_PROXY == "system":
             system_proxy = get_system_proxy()
             if system_proxy:
                 proxies = {"http": system_proxy, "https": system_proxy}
+        elif NTFY_PROXY:
+            proxies = {"http": NTFY_PROXY, "https": NTFY_PROXY}
         resp = requests.post(url, data=message.encode("utf-8"), headers=headers, timeout=10, proxies=proxies)
         resp.raise_for_status()
     except requests.RequestException as e:
