@@ -17,11 +17,31 @@ TWITCH_CHANNEL = os.getenv("TWITCH_CHANNEL", "").lower()
 NTFY_TOPIC = os.getenv("NTFY_TOPIC", "")
 NTFY_SERVER = os.getenv("NTFY_SERVER", "https://ntfy.sh")
 NTFY_TOKEN = os.getenv("NTFY_TOKEN", "")
+NTFY_PROXY = os.getenv("NTFY_PROXY", "")
+NTFY_NO_PROXY = os.getenv("NTFY_NO_PROXY", "false").lower() in ("true", "1", "yes")
 SHOW_BADGES = os.getenv("SHOW_BADGES", "false").lower() in ("true", "1", "yes")
 
 TWITCH_HOST = "irc.chat.twitch.tv"
 TWITCH_PORT = 6667
 RECONNECT_DELAY = 5
+
+
+def get_system_proxy() -> str:
+    if sys.platform != "win32":
+        return ""
+    try:
+        import winreg
+        key = winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Software\Microsoft\Windows\CurrentVersion\Internet Settings")
+        enabled, _ = winreg.QueryValueEx(key, "ProxyEnable")
+        if not enabled:
+            return ""
+        server, _ = winreg.QueryValueEx(key, "ProxyServer")
+        winreg.CloseKey(key)
+        if server and "://" not in server:
+            server = "http://" + server
+        return server
+    except Exception:
+        return ""
 
 
 def send_ntfy(message: str) -> None:
@@ -30,7 +50,16 @@ def send_ntfy(message: str) -> None:
     if NTFY_TOKEN:
         headers["Authorization"] = f"Bearer {NTFY_TOKEN}"
     try:
-        resp = requests.post(url, data=message.encode("utf-8"), headers=headers, timeout=10)
+        proxies = None
+        if NTFY_NO_PROXY:
+            proxies = {"http": None, "https": None}
+        elif NTFY_PROXY:
+            proxies = {"http": NTFY_PROXY, "https": NTFY_PROXY}
+        else:
+            system_proxy = get_system_proxy()
+            if system_proxy:
+                proxies = {"http": system_proxy, "https": system_proxy}
+        resp = requests.post(url, data=message.encode("utf-8"), headers=headers, timeout=10, proxies=proxies)
         resp.raise_for_status()
     except requests.RequestException as e:
         print(f"[ntfy error] {e}")
